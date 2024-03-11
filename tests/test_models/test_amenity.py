@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-"""This defines unittests for models/amenity.py.
+"""Defines unittests for models/amenity.py.
 
 Unittest classes:
     TestAmenity_instantiation
@@ -36,7 +36,7 @@ class TestAmenity_instantiation(unittest.TestCase):
         am = Amenity()
         self.assertEqual(str, type(Amenity.name))
         self.assertIn("name", dir(Amenity()))
-        self.assertNotIn("name", am.__dict__)
+        self.assertNotIn("name", am._dict_)
 
     def test_two_amenities_unique_ids(self):
         am1 = Amenity()
@@ -61,7 +61,7 @@ class TestAmenity_instantiation(unittest.TestCase):
         am = Amenity()
         am.id = "123456"
         am.created_at = am.updated_at = dt
-        amstr = am.__str__()
+        amstr = am._str_()
         self.assertIn("[Amenity] (123456)", amstr)
         self.assertIn("'id': '123456'", amstr)
         self.assertIn("'created_at': " + dt_repr, amstr)
@@ -69,7 +69,7 @@ class TestAmenity_instantiation(unittest.TestCase):
 
     def test_args_unused(self):
         am = Amenity(None)
-        self.assertNotIn(None, am.__dict__.values())
+        self.assertNotIn(None, am._dict_.values())
 
     def test_instantiation_with_kwargs(self):
         """instantiation with kwargs test method"""
@@ -147,7 +147,7 @@ class TestAmenity_to_dict(unittest.TestCase):
         self.assertIn("id", am.to_dict())
         self.assertIn("created_at", am.to_dict())
         self.assertIn("updated_at", am.to_dict())
-        self.assertIn("__class__", am.to_dict())
+        self.assertIn("_class_", am.to_dict())
 
     def test_to_dict_contains_added_attributes(self):
         am = Amenity()
@@ -170,7 +170,7 @@ class TestAmenity_to_dict(unittest.TestCase):
         am.created_at = am.updated_at = dt
         tdict = {
             'id': '123456',
-            '__class__': 'Amenity',
+            '_class_': 'Amenity',
             'created_at': dt.isoformat(),
             'updated_at': dt.isoformat(),
         }
@@ -178,7 +178,7 @@ class TestAmenity_to_dict(unittest.TestCase):
 
     def test_contrast_to_dict_dunder_dict(self):
         am = Amenity()
-        self.assertNotEqual(am.to_dict(), am.__dict__)
+        self.assertNotEqual(am.to_dict(), am._dict_)
 
     def test_to_dict_with_arg(self):
         am = Amenity()
@@ -186,5 +186,5 @@ class TestAmenity_to_dict(unittest.TestCase):
             am.to_dict(None)
 
 
-if __name__ == "__main__":
+if _name_ == "_main_":
     unittest.main()

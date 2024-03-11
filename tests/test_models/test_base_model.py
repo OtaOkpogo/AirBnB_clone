@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-"""It defines unittests for models/base_model.py.
+"""Defines unittests for models/base_model.py.
 
 Unittest classes:
     TestBaseModel_instantiation
@@ -55,7 +55,7 @@ class TestBaseModel_instantiation(unittest.TestCase):
         bm = BaseModel()
         bm.id = "123456"
         bm.created_at = bm.updated_at = dt
-        bmstr = bm.__str__()
+        bmstr = bm._str_()
         self.assertIn("[BaseModel] (123456)", bmstr)
         self.assertIn("'id': '123456'", bmstr)
         self.assertIn("'created_at': " + dt_repr, bmstr)
@@ -63,7 +63,7 @@ class TestBaseModel_instantiation(unittest.TestCase):
 
     def test_args_unused(self):
         bm = BaseModel(None)
-        self.assertNotIn(None, bm.__dict__.values())
+        self.assertNotIn(None, bm._dict_.values())
 
     def test_instantiation_with_kwargs(self):
         dt = datetime.today()
@@ -150,7 +150,7 @@ class TestBaseModel_to_dict(unittest.TestCase):
         self.assertIn("id", bm.to_dict())
         self.assertIn("created_at", bm.to_dict())
         self.assertIn("updated_at", bm.to_dict())
-        self.assertIn("__class__", bm.to_dict())
+        self.assertIn("_class_", bm.to_dict())
 
     def test_to_dict_contains_added_attributes(self):
         bm = BaseModel()
@@ -172,7 +172,7 @@ class TestBaseModel_to_dict(unittest.TestCase):
         bm.created_at = bm.updated_at = dt
         tdict = {
             'id': '123456',
-            '__class__': 'BaseModel',
+            '_class_': 'BaseModel',
             'created_at': dt.isoformat(),
             'updated_at': dt.isoformat()
         }
@@ -180,7 +180,7 @@ class TestBaseModel_to_dict(unittest.TestCase):
 
     def test_contrast_to_dict_dunder_dict(self):
         bm = BaseModel()
-        self.assertNotEqual(bm.to_dict(), bm.__dict__)
+        self.assertNotEqual(bm.to_dict(), bm._dict_)
 
     def test_to_dict_with_arg(self):
         bm = BaseModel()
@@ -188,5 +188,5 @@ class TestBaseModel_to_dict(unittest.TestCase):
             bm.to_dict(None)
 
 
-if __name__ == "__main__":
+if _name_ == "_main_":
     unittest.main()
