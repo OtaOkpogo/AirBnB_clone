@@ -1,222 +1,197 @@
-Description 🏠
-HolbertonBnB is a complete web application, integrating database storage, a back-end API, and front-end interfacing in a clone of AirBnB.
+README file for AirBnB_clone
 
-The project currently only implements the back-end console.
+In this project I am performing tasks that will be addressing the following instructions and requirements
 
-Classes 🆑
+1. Write a README.md:
+description of the project
+description of the command interpreter:
+how to start it
+how to use it
+examples
+You should have an AUTHORS file at the root of your repository, listing all individuals having contributed content to the repository. For format, reference Docker’s AUTHORS page
+..................................................................................
+2. Write beautiful code that passes the pycodestyle checks.
+......................................................................
+3. All your files, classes, functions must be tested with unit tests
+..................................................................................
+4. Write a class BaseModel that defines all common attributes/methods for other classes:
 
-HolbertonBnB utilizes the following classes:
+models/base_model.py
+Public instance attributes:
+id: string - assign with an uuid when an instance is created:
+you can use uuid.uuid4() to generate unique id but don’t forget to convert to a string
+the goal is to have unique id for each BaseModel
+created_at: datetime - assign with the current datetime when an instance is created
+updated_at: datetime - assign with the current datetime when an instance is created and it will be updated every time you change your object
+__str__: should print: [<class name>] (<self.id>) <self.__dict__>
+Public instance methods:
+save(self): updates the public instance attribute updated_at with the current datetime
+to_dict(self): returns a dictionary containing all keys/values of __dict__ of the instance:
+by using self.__dict__, only instance attributes set will be returned
+a key __class__ must be added to this dictionary with the class name of the object
+created_at and updated_at must be converted to string object in ISO format:
+format: %Y-%m-%dT%H:%M:%S.%f (ex: 2017-06-14T22:31:03.285259)
+you can use isoformat() of datetime object
+This method will be the first piece of the serialization/deserialization process: create a dictionary representation with “simple object type” of our BaseModel
+................................................................................................
+5. Update models/base_model.py:
 
-BaseModel	FileStorage	User	State	City	Amenity	Place	Review
-PUBLIC INSTANCE ATTRIBUTES	id
-created_at
-updated_at		Inherits from BaseModel	Inherits from BaseModel	Inherits from BaseModel	Inherits from BaseModel	Inherits from BaseModel	Inherits from BaseModel
-PUBLIC INSTANCE METHODS	save
-to_dict	all
-new
-save
-reload	""	""	""	""	""	""
-PUBLIC CLASS ATTRIBUTES			email
-password
-first_name
-last_name	name	state_id
-name	name	city_id
-user_id
-name
-description
-number_rooms
-number_bathrooms
-max_guest
-price_by_night
-latitude
-longitude
-amenity_ids	place_id
-user_id
-text
-PRIVATE CLASS ATTRIBUTES		file_path
-objects						
-Storage 🛄
-The above classes are handled by the abstracted storage engine defined in the FileStorage class.
+__init__(self, *args, **kwargs):
+you will use *args, **kwargs arguments for the constructor of a BaseModel. (more information inside the AirBnB clone concept page)
+*args won’t be used
+if kwargs is not empty:
+each key of this dictionary is an attribute name (Note __class__ from kwargs is the only one that should not be added as an attribute. See the example output, below)
+each value of this dictionary is the value of this attribute name
+Warning: created_at and updated_at are strings in this dictionary, but inside your BaseModel instance is working with datetime object. You have to convert these strings into datetime object. Tip: you know the string format of these datetime
+otherwise:
+create id and created_at as you did previously (new instance)
+.................................................................................................
+6. Terms:
 
-Every time the backend is initialized, HolbertonBnB instantiates an instance of FileStorage called storage. The storage object is loaded/re-loaded from any class instances stored in the JSON file file.json. As class instances are created, updated, or deleted, the storage object is used to register corresponding changes in the file.json.
+simple Python data structure: Dictionaries, arrays, number and string. ex: { '12': { 'numbers': [1, 2, 3], 'name': "John" } }
+JSON string representation: String representing a simple data structure in JSON format. ex: '{ "12": { "numbers": [1, 2, 3], "name": "John" } }'
+Write a class FileStorage that serializes instances to a JSON file and deserializes JSON file to instances:
 
-Console 💻
-The console is a command line interpreter that permits management of the backend of HolbertonBnB. It can be used to handle and manipulate all classes utilized by the application (achieved by calls on the storage object defined above).
+models/engine/file_storage.py
+Private class attributes:
+__file_path: string - path to the JSON file (ex: file.json)
+__objects: dictionary - empty but will store all objects by <class name>.id (ex: to store a BaseModel object with id=12121212, the key will be BaseModel.12121212)
+Public instance methods:
+all(self): returns the dictionary __objects
+new(self, obj): sets in __objects the obj with key <obj class name>.id
+save(self): serializes __objects to the JSON file (path: __file_path)
+reload(self): deserializes the JSON file to __objects (only if the JSON file (__file_path) exists ; otherwise, do nothing. If the file doesn’t exist, no exception should be raised)
+Update models/__init__.py: to create a unique FileStorage instance for your application
 
-Using the Console
-The HolbertonBnB console can be run both interactively and non-interactively. To run the console in non-interactive mode, pipe any command(s) into an execution of the file console.py at the command line.
+import file_storage.py
+create the variable storage, an instance of FileStorage
+call reload() method on this variable
+Update models/base_model.py: to link your BaseModel to FileStorage by using the variable storage
 
-$ echo "help" | ./console.py
-(hbnb) 
-Documented commands (type help <topic>):
-========================================
-EOF  all  count  create  destroy  help  quit  show  update
+import the variable storage
+in the method save(self):
+call save(self) method of storage
+__init__(self, *args, **kwargs):
+if it’s a new instance (not from a dictionary representation), add a call to the method new(self) on storage
+..................................................................................................
+7. Write a program called console.py that contains the entry point of the command interpreter:
 
-(hbnb) 
-$
-Alternatively, to use the HolbertonBnB console in interactive mode, run the file console.py by itself:
+You must use the module cmd
+Your class definition must be: class HBNBCommand(cmd.Cmd):
+Your command interpreter should implement:
+quit and EOF to exit the program
+help (this action is provided by default by cmd but you should keep it updated and documented as you work through tasks)
+a custom prompt: (hbnb)
+an empty line + ENTER shouldn’t execute anything
+Your code should not be executed when imported
+..................................................................................................
+8. Update your command interpreter (console.py) to have these commands:
 
-$ ./console.py
-While running in interactive mode, the console displays a prompt for input:
+create: Creates a new instance of BaseModel, saves it (to the JSON file) and prints the id. Ex: $ create BaseModel
+If the class name is missing, print ** class name missing ** (ex: $ create)
+If the class name doesn’t exist, print ** class doesn't exist ** (ex: $ create MyModel)
+show: Prints the string representation of an instance based on the class name and id. Ex: $ show BaseModel 1234-1234-1234.
+If the class name is missing, print ** class name missing ** (ex: $ show)
+If the class name doesn’t exist, print ** class doesn't exist ** (ex: $ show MyModel)
+If the id is missing, print ** instance id missing ** (ex: $ show BaseModel)
+If the instance of the class name doesn’t exist for the id, print ** no instance found ** (ex: $ show BaseModel 121212)
+destroy: Deletes an instance based on the class name and id (save the change into the JSON file). Ex: $ destroy BaseModel 1234-1234-1234.
+If the class name is missing, print ** class name missing ** (ex: $ destroy)
+If the class name doesn’t exist, print ** class doesn't exist ** (ex:$ destroy MyModel)
+If the id is missing, print ** instance id missing ** (ex: $ destroy BaseModel)
+If the instance of the class name doesn’t exist for the id, print ** no instance found ** (ex: $ destroy BaseModel 121212)
+all: Prints all string representation of all instances based or not on the class name. Ex: $ all BaseModel or $ all.
+The printed result must be a list of strings (like the example below)
+If the class name doesn’t exist, print ** class doesn't exist ** (ex: $ all MyModel)
+update: Updates an instance based on the class name and id by adding or updating attribute (save the change into the JSON file). Ex: $ update BaseModel 1234-1234-1234 email "aibnb@mail.com".
+Usage: update <class name> <id> <attribute name> "<attribute value>"
+Only one attribute can be updated at the time
+You can assume the attribute name is valid (exists for this model)
+The attribute value must be casted to the attribute type
+If the class name is missing, print ** class name missing ** (ex: $ update)
+If the class name doesn’t exist, print ** class doesn't exist ** (ex: $ update MyModel)
+If the id is missing, print ** instance id missing ** (ex: $ update BaseModel)
+If the instance of the class name doesn’t exist for the id, print ** no instance found ** (ex: $ update BaseModel 121212)
+If the attribute name is missing, print ** attribute name missing ** (ex: $ update BaseModel existing-id)
+If the value for the attribute name doesn’t exist, print ** value missing ** (ex: $ update BaseModel existing-id first_name)
+All other arguments should not be used (Ex: $ update BaseModel 1234-1234-1234 email "aibnb@mail.com" first_name "Betty" = $ update BaseModel 1234-1234-1234 email "aibnb@mail.com")
+id, created_at and updated_at cant’ be updated. You can assume they won’t be passed in the update command
+Only “simple” arguments can be updated: string, integer and float. You can assume nobody will try to update list of ids or datetime
+Let’s add some rules:
 
-$ ./console.py
-(hbnb) 
-To quit the console, enter the command quit, or input an EOF signal (ctrl-D).
+You can assume arguments are always in the right order
+Each arguments are separated by a space
+A string argument with a space must be between double quote
+The error management starts from the first argument to the last one
+.............................................................................................
+9. Write a class User that inherits from BaseModel:
 
-$ ./console.py
-(hbnb) quit
-$
-$ ./console.py
-(hbnb) EOF
-$
-Console Commands
-The HolbertonBnB console supports the following commands:
+models/user.py
+Public class attributes:
+email: string - empty string
+password: string - empty string
+first_name: string - empty string
+last_name: string - empty string
+Update FileStorage to manage correctly serialization and deserialization of User.
 
-create
-Usage: create <class>
-Creates a new instance of a given class. The class' ID is printed and the instance is saved to the file file.json.
+Update your command interpreter (console.py) to allow show, create, destroy, update and all used with User
+..................................................................................................
+10. Write all those classes that inherit from BaseModel:
 
-$ ./console.py
-(hbnb) create BaseModel
-119be863-6fe5-437e-a180-b9892e8746b8
-(hbnb) quit
-$ cat file.json ; echo ""
-{"BaseModel.119be863-6fe5-437e-a180-b9892e8746b8": {"updated_at": "2019-02-17T2
-1:30:42.215277", "created_at": "2019-02-17T21:30:42.215277", "__class__": "Base
-Model", "id": "119be863-6fe5-437e-a180-b9892e8746b8"}}
-show
-Usage: show <class> <id> or <class>.show(<id>)
-Prints the string representation of a class instance based on a given id.
+State (models/state.py):
+Public class attributes:
+name: string - empty string
+City (models/city.py):
+Public class attributes:
+state_id: string - empty string: it will be the State.id
+name: string - empty string
+Amenity (models/amenity.py):
+Public class attributes:
+name: string - empty string
+Place (models/place.py):
+Public class attributes:
+city_id: string - empty string: it will be the City.id
+user_id: string - empty string: it will be the User.id
+name: string - empty string
+description: string - empty string
+number_rooms: integer - 0
+number_bathrooms: integer - 0
+max_guest: integer - 0
+price_by_night: integer - 0
+latitude: float - 0.0
+longitude: float - 0.0
+amenity_ids: list of string - empty list: it will be the list of Amenity.id later
+Review (models/review.py):
+Public class attributes:
+place_id: string - empty string: it will be the Place.id
+user_id: string - empty string: it will be the User.id
+text: string - empty string
+..............................................................................................
+11. Update FileStorage to manage correctly serialization and deserialization of all our new classes: Place, State, City, Amenity and Review
 
-$ ./console.py
-(hbnb) create User
-1e32232d-5a63-4d92-8092-ac3240b29f46
-(hbnb)
-(hbnb) show User 1e32232d-5a63-4d92-8092-ac3240b29f46
-[User] (1e32232d-5a63-4d92-8092-ac3240b29f46) {'id': '1e32232d-5a63-4d92-8092-a
-c3240b29f46', 'created_at': datetime.datetime(2019, 2, 17, 21, 34, 3, 635828), 
-'updated_at': datetime.datetime(2019, 2, 17, 21, 34, 3, 635828)}
-(hbnb) 
-(hbnb) User.show(1e32232d-5a63-4d92-8092-ac3240b29f46)
-[User] (1e32232d-5a63-4d92-8092-ac3240b29f46) {'id': '1e32232d-5a63-4d92-8092-a
-c3240b29f46', 'created_at': datetime.datetime(2019, 2, 17, 21, 34, 3, 635828), 
-'updated_at': datetime.datetime(2019, 2, 17, 21, 34, 3, 635828)}
-(hbnb) 
-destroy
-Usage: destroy <class> <id> or <class>.destroy(<id>)
-Deletes a class instance based on a given id. The storage file file.json is updated accordingly.
+Update your command interpreter (console.py) to allow those actions: show, create, destroy, update and all with all classes created previously.
+..........................................................................................
+12. Update your command interpreter (console.py) to retrieve all instances of a class by using: <class name>.all()
+..............................................................................................................
+13. Update your command interpreter (console.py) to retrieve the number of instances of a class: <class name>.count().
+...........................................................................
+14. Update your command interpreter (console.py) to retrieve an instance based on its ID: <class name>.show(<id>).
 
-$ ./console.py
-(hbnb) create State
-d2d789cd-7427-4920-aaae-88cbcf8bffe2
-(hbnb) create Place
-3e-8329-4f47-9947-dca80c03d3ed
-(hbnb)
-(hbnb) destroy State d2d789cd-7427-4920-aaae-88cbcf8bffe2
-(hbnb) Place.destroy(03486a3e-8329-4f47-9947-dca80c03d3ed)
-(hbnb) quit
-$ cat file.json ; echo ""
-{}
-all
-Usage: all or all <class> or <class>.all()
-Prints the string representations of all instances of a given class. If no class name is provided, the command prints all instances of every class.
+Errors management must be the same as previously.
+.......................................................................................
+15. Update your command interpreter (console.py) to destroy an instance based on his ID: <class name>.destroy(<id>).
 
-$ ./console.py
-(hbnb) create BaseModel
-fce2124c-8537-489b-956e-22da455cbee8
-(hbnb) create BaseModel
-450490fd-344e-47cf-8342-126244c2ba99
-(hbnb) create User
-b742dbc3-f4bf-425e-b1d4-165f52c6ff81
-(hbnb) create User
-8f2d75c8-fb82-48e1-8ae5-2544c909a9fe
-(hbnb)
-(hbnb) all BaseModel
-["[BaseModel] (450490fd-344e-47cf-8342-126244c2ba99) {'updated_at': datetime.da
-tetime(2019, 2, 17, 21, 45, 5, 963516), 'created_at': datetime.datetime(2019, 2
-, 17, 21, 45, 5, 963516), 'id': '450490fd-344e-47cf-8342-126244c2ba99'}", "[Bas
-eModel] (fce2124c-8537-489b-956e-22da455cbee8) {'updated_at': datetime.datetime
-(2019, 2, 17, 21, 43, 56, 899348), 'created_at': datetime.datetime(2019, 2, 17,
-21, 43, 56, 899348), 'id': 'fce2124c-8537-489b-956e-22da455cbee8'}"]
-(hbnb)
-(hbnb) User.all()
-["[User] (8f2d75c8-fb82-48e1-8ae5-2544c909a9fe) {'updated_at': datetime.datetim
-e(2019, 2, 17, 21, 44, 44, 428413), 'created_at': datetime.datetime(2019, 2, 17
-, 21, 44, 44, 428413), 'id': '8f2d75c8-fb82-48e1-8ae5-2544c909a9fe'}", "[User] 
-(b742dbc3-f4bf-425e-b1d4-165f52c6ff81) {'updated_at': datetime.datetime(2019, 2
-, 17, 21, 44, 15, 974608), 'created_at': datetime.datetime(2019, 2, 17, 21, 44,
-15, 974608), 'id': 'b742dbc3-f4bf-425e-b1d4-165f52c6ff81'}"]
-(hbnb) 
-(hbnb) all
-["[User] (8f2d75c8-fb82-48e1-8ae5-2544c909a9fe) {'updated_at': datetime.datetim
-e(2019, 2, 17, 21, 44, 44, 428413), 'created_at': datetime.datetime(2019, 2, 17
-, 21, 44, 44, 428413), 'id': '8f2d75c8-fb82-48e1-8ae5-2544c909a9fe'}", "[BaseMo
-del] (450490fd-344e-47cf-8342-126244c2ba99) {'updated_at': datetime.datetime(20
-19, 2, 17, 21, 45, 5, 963516), 'created_at': datetime.datetime(2019, 2, 17, 21,
-45, 5, 963516), 'id': '450490fd-344e-47cf-8342-126244c2ba99'}", "[User] (b742db
-c3-f4bf-425e-b1d4-165f52c6ff81) {'updated_at': datetime.datetime(2019, 2, 17, 2
-1, 44, 15, 974608), 'created_at': datetime.datetime(2019, 2, 17, 21, 44, 15, 97
-4608), 'id': 'b742dbc3-f4bf-425e-b1d4-165f52c6ff81'}", "[BaseModel] (fce2124c-8
-537-489b-956e-22da455cbee8) {'updated_at': datetime.datetime(2019, 2, 17, 21, 4
-3, 56, 899348), 'created_at': datetime.datetime(2019, 2, 17, 21, 43, 56, 899348
-), 'id': 'fce2124c-8537-489b-956e-22da455cbee8'}"]
-(hbnb) 
-count
-Usage: count <class> or <class>.count()
-Retrieves the number of instances of a given class.
+Errors management must be the same as previously.
+.............................................................................
+16. Update your command interpreter (console.py) to update an instance based on his ID: <class name>.update(<id>, <attribute name>, <attribute value>).
 
-$ ./console.py
-(hbnb) create Place
-12c73223-f3d3-4dec-9629-bd19c8fadd8a
-(hbnb) create Place
-aa229cbb-5b19-4c32-8562-f90a3437d301
-(hbnb) create City
-22a51611-17bd-4d8f-ba1b-3bf07d327208
-(hbnb) 
-(hbnb) count Place
-2
-(hbnb) city.count()
-1
-(hbnb) 
-update
-Usage: update <class> <id> <attribute name> "<attribute value>" or <class>.update(<id>, <attribute name>, <attribute value>) or <class>.update( <id>, <attribute dictionary>).
-Updates a class instance based on a given id with a given key/value attribute pair or dictionary of attribute pairs. If update is called with a single key/value attribute pair, only "simple" attributes can be updated (ie. not id, created_at, and updated_at). However, any attribute can be updated by providing a dictionary.
+Errors management must be the same as previously.
+...............................................................................................
+17. Update your command interpreter (console.py) to update an instance based on his ID with a dictionary: <class name>.update(<id>, <dictionary representation>).
 
-$ ./console.py
-(hbnb) create User
-6f348019-0499-420f-8eec-ef0fdc863c02
-(hbnb)
-(hbnb) update User 6f348019-0499-420f-8eec-ef0fdc863c02 first_name "Holberton"
-(hbnb) show User 6f348019-0499-420f-8eec-ef0fdc863c02
-[User] (6f348019-0499-420f-8eec-ef0fdc863c02) {'created_at': datetime.datetime(
-2019, 2, 17, 21, 54, 39, 234382), 'first_name': 'Holberton', 'updated_at': date
-time.datetime(2019, 2, 17, 21, 54, 39, 234382), 'id': '6f348019-0499-420f-8eec-
-ef0fdc863c02'}
-(hbnb)
-(hbnb) User.update(6f348019-0499-420f-8eec-ef0fdc863c02, address, "98 Mission S
-t")
-(hbnb) User.show(6f348019-0499-420f-8eec-ef0fdc863c02)
-[User] (6f348019-0499-420f-8eec-ef0fdc863c02) {'created_at': datetime.datetime(
-2019, 2, 17, 21, 54, 39, 234382), 'address': '98 Mission St', 'first_name': 'Ho
-lberton', 'updated_at': datetime.datetime(2019, 2, 17, 21, 54, 39, 234382), 'id
-': '6f348019-0499-420f-8eec-ef0fdc863c02'}
-(hbnb)
-(hbnb) User.update(6f348019-0499-420f-8eec-ef0fdc863c02, {'email': 'holberton@h
-olberton.com', 'last_name': 'School'})
-[User] (6f348019-0499-420f-8eec-ef0fdc863c02) {'email': 'holberton@holberton.co
-m', 'first_name': 'Holberton', 'updated_at': datetime.datetime(2019, 2, 17, 21,
-54, 39, 234382), 'address': '98 Mission St', 'last_name': 'School', 'id': '6f34
-8019-0499-420f-8eec-ef0fdc863c02', 'created_at': datetime.datetime(2019, 2, 17,
-21, 54, 39, 234382)}
-(hbnb) 
+Errors management must be the same as previously.
+...........................................................................................
+18. Write all unittests for console.py, all features!
 
-Testing 📏
-
-Unittests for the HolbertonBnB project are defined in the tests folder. To run the entire test suite simultaneously, execute the following command:
-
-$ python3 unittest -m discover tests
-Alternatively, you can specify a single test file to run at a time:
-
-$ python3 unittest -m tests/test_console.py
-Authors ✒️
-Ota Okpogo <OtaOkpogo>
+For testing the console, you should “intercept” STDOUT of it
+.............................................................
